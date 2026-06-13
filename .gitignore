@@ -13,3 +13,14 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# source code — kept private; only the compiled Release is distributed publicly
+*.py
+*.spec
+*.bat
+*.ico
+static/
+
+# internal docs — keep only the public README
+*.md
+!README.md
