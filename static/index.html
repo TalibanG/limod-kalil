@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>לימוד קליל — עוזר הלימודים שלך</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --bg:#f6f3ec; --panel:#ffffff; --ink:#262220; --muted:#7a726a;
+  --accent:#b4552d; --accent-soft:#f3e0d6; --line:#e6dfd3;
+  --good:#2e7d4f; --bad:#b3392e; --radius:14px;
+}
+*{box-sizing:border-box; margin:0; padding:0}
+body{font-family:"Segoe UI","Arial Hebrew",Arial,sans-serif; background:var(--bg); color:var(--ink); height:100vh; display:flex; overflow:hidden}
+
+/* ---------- sidebar ---------- */
+#sidebar{width:270px; min-width:270px; background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; padding:16px}
+#logo{font-size:22px; font-weight:800; margin-bottom:2px}
+#logo span{color:var(--accent)}
+#tagline{font-size:12px; color:var(--muted); margin-bottom:16px}
+#course-list{flex:1; overflow-y:auto; margin:8px 0}
+.course-item{padding:10px 12px; border-radius:10px; cursor:pointer; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center}
+.course-item:hover{background:var(--bg)}
+.course-item.active{background:var(--accent-soft); font-weight:600}
+.course-item .meta{font-size:11px; color:var(--muted)}
+.course-del{visibility:hidden; border:none; background:none; color:var(--muted); cursor:pointer; font-size:14px}
+.course-item:hover .course-del{visibility:visible}
+button.primary{background:var(--accent); color:#fff; border:none; border-radius:10px; padding:10px 14px; font-size:14px; font-weight:600; cursor:pointer; width:100%}
+button.primary:hover{filter:brightness(1.08)}
+button.primary:disabled{opacity:.5; cursor:wait}
+button.ghost{background:none; border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:13px; cursor:pointer; color:var(--ink)}
+button.ghost:hover{background:var(--bg)}
+#settings-btn{margin-top:10px}
+.key-warn{background:#fdf0d5; border:1px solid #e8c97a; border-radius:10px; padding:10px; font-size:12.5px; margin-top:10px; line-height:1.5}
+
+/* ---------- main ---------- */
+#main{flex:1; display:flex; flex-direction:column; overflow:hidden}
+#topbar{padding:14px 24px 0}
+#course-title{font-size:24px; font-weight:800}
+#tabs{display:flex; gap:4px; padding:12px 24px 0; border-bottom:1px solid var(--line)}
+.tab{padding:9px 16px; border:none; background:none; font-size:14px; cursor:pointer; border-radius:10px 10px 0 0; color:var(--muted); font-weight:600}
+.tab.active{background:var(--panel); color:var(--accent); border:1px solid var(--line); border-bottom:1px solid var(--panel); margin-bottom:-1px}
+#content{flex:1; overflow-y:auto; padding:20px 24px}
+.pane{display:none; max-width:980px; margin:0 auto}
+.pane.active{display:block}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-bottom:14px}
+.row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+input[type=text],input[type=password],input[type=number],textarea,select{
+  font-family:inherit; font-size:14px; padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); width:100%}
+textarea{resize:vertical; min-height:110px}
+label{font-size:13px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px}
+h3{font-size:16px; margin-bottom:10px}
+.hint{font-size:12.5px; color:var(--muted)}
+
+/* markdown output */
+.md{line-height:1.75; font-size:15px}
+.md h1,.md h2,.md h3{margin:18px 0 8px; color:var(--ink)}
+.md h1{font-size:21px; border-bottom:2px solid var(--accent-soft); padding-bottom:4px}
+.md h2{font-size:18px}
+.md p,.md ul,.md ol{margin-bottom:10px}
+.md ul,.md ol{padding-right:22px}
+.md code{background:var(--bg); padding:1px 5px; border-radius:5px; font-size:13px; direction:ltr; unicode-bidi:embed}
+.md pre{background:#2b2723; color:#f1ece4; padding:12px; border-radius:10px; overflow-x:auto; direction:ltr; text-align:left; margin-bottom:10px}
+.md pre code{background:none; color:inherit}
+.md table{border-collapse:collapse; margin:10px 0; width:100%}
+.md th,.md td{border:1px solid var(--line); padding:6px 10px; font-size:14px}
+.md th{background:var(--bg)}
+.md blockquote{border-right:3px solid var(--accent); padding-right:12px; color:var(--muted); margin-bottom:10px}
+.md .katex{direction:ltr; unicode-bidi:isolate; font-size:1.06em}
+.md .katex-display{direction:ltr; margin:12px 0; overflow-x:auto; overflow-y:hidden}
+.md hr{border:none; border-top:2px dashed var(--line); margin:22px 0}
+/* solution pane: structured, exam-ready look */
+#solve-out h2{background:var(--accent-soft); border-radius:10px; padding:8px 14px; border-bottom:none; margin-top:24px}
+#solve-out h3{color:var(--accent); margin-top:14px}
+#solve-out blockquote{
+  border:2px solid var(--good); border-right:6px solid var(--good);
+  background:#eef7f1; border-radius:12px; padding:10px 14px; color:var(--ink); margin:14px 0}
+#solve-out blockquote h3{color:var(--good); margin:0 0 6px}
+#solve-out blockquote p{margin-bottom:4px}
+.streaming::after{content:"▌"; color:var(--accent); animation:blink 1s infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* materials */
+.mat-item{display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border:1px solid var(--line); border-radius:10px; margin-bottom:6px; font-size:14px; background:#fff}
+.mat-item .sz{font-size:11px; color:var(--muted)}
+.del-x{border:none; background:none; color:var(--muted); cursor:pointer; font-size:15px}
+.del-x:hover{color:var(--bad)}
+#drop{border:2px dashed var(--line); border-radius:var(--radius); padding:22px; text-align:center; color:var(--muted); cursor:pointer; transition:.15s}
+#drop.over{border-color:var(--accent); background:var(--accent-soft)}
+
+/* history lists */
+.hist-item{padding:10px 12px; border:1px solid var(--line); border-radius:10px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:#fff}
+.hist-item:hover{border-color:var(--accent)}
+.hist-item.sel{background:var(--accent-soft); border-color:var(--accent)}
+
+/* chat */
+#chat-log{display:flex; flex-direction:column; gap:10px; margin-bottom:12px}
+.bubble{max-width:85%; padding:10px 14px; border-radius:14px; font-size:14.5px}
+.bubble.user{background:var(--accent); color:#fff; align-self:flex-start; border-bottom-right-radius:4px}
+.bubble.assistant{background:var(--panel); border:1px solid var(--line); align-self:flex-end; border-bottom-left-radius:4px}
+
+/* quiz */
+.q-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:12px}
+.q-head{display:flex; justify-content:space-between; margin-bottom:8px; font-weight:700}
+.q-points{color:var(--muted); font-size:13px; font-weight:400}
+.q-tools{margin-top:8px; display:flex; gap:8px}
+.reveal{display:none; margin-top:10px; padding:10px; background:var(--bg); border-radius:10px; font-size:14px}
+.reveal.show{display:block}
+.score-pill{display:inline-block; padding:2px 10px; border-radius:999px; font-weight:700; font-size:13px}
+.score-good{background:#e2f2e8; color:var(--good)}
+.score-mid{background:#fdf0d5; color:#8a6d1a}
+.score-bad{background:#fbe3e0; color:var(--bad)}
+
+/* flashcards */
+#fc-stage{perspective:1200px; margin:18px auto; width:min(560px,100%); height:300px; cursor:pointer}
+#fc-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d}
+#fc-stage.flipped #fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute; inset:0; backface-visibility:hidden; background:var(--panel); border:1px solid var(--line); border-radius:18px; display:flex; align-items:center; justify-content:center; padding:26px; font-size:18px; text-align:center; line-height:1.6; overflow-y:auto}
+.fc-face.back{transform:rotateY(180deg); background:var(--accent-soft)}
+#fc-nav{display:flex; gap:10px; justify-content:center; align-items:center}
+
+/* modal */
+#modal-bg{position:fixed; inset:0; background:rgba(40,30,20,.45); display:none; align-items:center; justify-content:center; z-index:50}
+#modal-bg.open{display:flex}
+#modal{background:var(--panel); border-radius:var(--radius); padding:22px; width:min(480px,92vw)}
+#modal h3{margin-bottom:14px}
+.field{margin-bottom:12px}
+#toast{position:fixed; bottom:18px; right:50%; transform:translateX(50%); background:var(--ink); color:#fff; padding:10px 18px; border-radius:10px; font-size:14px; display:none; z-index:99}
+.spinner{display:inline-block; width:15px; height:15px; border:2px solid var(--accent-soft); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#empty-state{text-align:center; color:var(--muted); margin-top:14vh}
+#empty-state h2{font-size:26px; margin-bottom:10px; color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div id="logo">לימוד <span>קליל</span> 🎓</div>
+  <div id="tagline">העוזר האישי שלך לתואר מצטיין</div>
+  <button class="primary" onclick="newCourse()">+ קורס חדש</button>
+  <div id="course-list"></div>
+  <div id="key-warning" class="key-warn" style="display:none">
+    ⚠️ עוד לא הוגדר מפתח API.<br>היכנסו ל-<b>platform.claude.com</b>, צרו מפתח, והדביקו אותו בהגדרות.
+  </div>
+  <button class="ghost" id="settings-btn" onclick="openSettings()">⚙ הגדרות</button>
+</div>
+
+<div id="main">
+  <div id="empty-state">
+    <h2>ברוכים הבאים ללימוד קליל 🎓</h2>
+    <p>צרו קורס חדש בצד ימין, העלו את חומרי הלימוד —<br>ותקבלו סיכומים, פתרונות מטלות, מבחני תרגול וכרטיסיות.</p>
+  </div>
+
+  <div id="course-view" style="display:none; flex-direction:column; flex:1; overflow:hidden">
+    <div id="topbar"><span id="course-title"></span></div>
+    <div id="tabs">
+      <button class="tab active" data-pane="materials" onclick="showTab(this)">📚 חומרים</button>
+      <button class="tab" data-pane="summary" onclick="showTab(this)">📝 סיכומים</button>
+      <button class="tab" data-pane="solve" onclick="showTab(this)">✏️ פתרון מטלות</button>
+      <button class="tab" data-pane="exam" onclick="showTab(this)">🎯 מבחני תרגול</button>
+      <button class="tab" data-pane="cards" onclick="showTab(this)">🃏 כרטיסיות</button>
+      <button class="tab" data-pane="chat" onclick="showTab(this)">💬 מורה פרטי</button>
+    </div>
+    <div id="content">
+
+      <!-- materials -->
+      <div class="pane active" id="pane-materials">
+        <div class="card">
+          <h3>חומרי הקורס</h3>
+          <p class="hint" style="margin-bottom:10px">העלו סיכומי הרצאות, מצגות, דפי נוסחאות — כל מה שהקורס מבוסס עליו. (PDF / Word / PowerPoint / טקסט)</p>
+          <div id="drop" onclick="document.getElementById('file-in').click()">גררו קבצים לכאן או לחצו לבחירה</div>
+          <input type="file" id="file-in" multiple accept=".pdf,.docx,.doc,.pptx,.ppt,.txt,.md" style="display:none">
+          <div id="mat-list" style="margin-top:12px"></div>
+        </div>
+        <div class="card" id="mat-view" style="display:none"></div>
+        <div class="card">
+          <h3>או הדביקו טקסט</h3>
+          <div class="field"><input type="text" id="paste-name" placeholder="שם החומר (למשל: הרצאה 3)"></div>
+          <textarea id="paste-text" placeholder="הדביקו כאן את התוכן..."></textarea>
+          <div style="margin-top:8px"><button class="primary" style="width:auto" onclick="pasteMaterial()">הוסף לקורס</button></div>
+        </div>
+      </div>
+
+      <!-- summary -->
+      <div class="pane" id="pane-summary">
+        <div class="card">
+          <label>אילו חומרים לסכם? (כלום מסומן = הכול)</label>
+          <div id="sum-mats" class="row" style="margin-bottom:10px"></div>
+          <div class="row">
+            <input type="text" id="sum-focus" placeholder="נושא ספציפי (אופציונלי)" style="flex:1; min-width:200px">
+            <button class="primary" style="width:auto" id="sum-btn" onclick="makeSummary()">✨ צור סיכום</button>
+          </div>
+        </div>
+        <div id="sum-history"></div>
+        <div class="card" id="sum-out-card" style="display:none">
+          <div style="text-align:left; margin-bottom:6px; display:flex; gap:6px; justify-content:flex-start">
+            <button class="ghost" onclick="copyClean($('sum-out').dataset.raw)">📓 העתק למחברת (טקסט נקי)</button>
+            <button class="ghost" onclick="copyText($('sum-out').dataset.raw)">📋 העתק עם עיצוב</button>
+          </div>
+          <div class="md" id="sum-out"></div>
+        </div>
+      </div>
+
+      <!-- solve -->
+      <div class="pane" id="pane-solve">
+        <div class="card">
+          <label>הדביקו את המטלה / תרגיל הבית</label>
+          <textarea id="solve-in" placeholder="שאלה 1: ..."></textarea>
+          <div id="solve-drop" onclick="document.getElementById('solve-file').click()"
+               style="border:2px dashed var(--line); border-radius:10px; padding:12px; text-align:center; color:var(--muted); cursor:pointer; margin-top:8px; font-size:13.5px">
+            📎 או העלו את קובץ המטלה — PDF / Word / צילום של דף תרגילים (אפשר לגרור לכאן)
+          </div>
+          <input type="file" id="solve-file" multiple accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.webp" style="display:none">
+          <div id="solve-files" style="margin-top:6px"></div>
+          <div style="margin-top:8px"><button class="primary" style="width:auto" id="solve-btn" onclick="solve()">🧠 פתור עם הסברים</button></div>
+        </div>
+        <div id="solve-history"></div>
+        <div class="card" id="solve-out-card" style="display:none">
+          <div style="text-align:left; margin-bottom:6px; display:flex; gap:6px; justify-content:flex-start">
+            <button class="ghost" onclick="copyClean($('solve-out').dataset.raw)">📓 העתק למחברת (טקסט נקי)</button>
+            <button class="ghost" onclick="copyText($('solve-out').dataset.raw)">📋 העתק עם עיצוב</button>
+          </div>
+          <div class="md" id="solve-out"></div>
+          <div id="solve-ask" style="display:none; margin-top:16px; border-top:2px solid var(--accent-soft); padding-top:14px">
+            <h3>🙋 לא הבנת צעד בפתרון? שאלו כאן</h3>
+            <div id="solve-ask-log" style="display:flex; flex-direction:column; gap:10px; margin:10px 0"></div>
+            <div class="row">
+              <textarea id="solve-ask-in" style="flex:1; min-height:48px" placeholder="למשל: למה בצעד 2 חילקנו דווקא ב-2? (Ctrl+Enter לשליחה)"></textarea>
+              <button class="primary" style="width:auto" id="solve-ask-btn" onclick="askSolution()">שאל</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- exam -->
+      <div class="pane" id="pane-exam">
+        <div class="card">
+          <div class="row">
+            <div style="flex:1; min-width:180px"><input type="text" id="exam-topic" placeholder="נושא (אופציונלי)"></div>
+            <div><input type="number" id="exam-n" value="6" min="1" max="15" style="width:70px"> שאלות</div>
+            <button class="primary" style="width:auto" id="exam-btn" onclick="makeExam()">🎯 צור מבחן</button>
+          </div>
+          <p class="hint" style="margin-top:6px">ענו על השאלות ולחצו "בדוק אותי" — תקבלו ציון ומשוב על כל שאלה.</p>
+        </div>
+        <div id="exam-history"></div>
+        <div id="exam-area"></div>
+      </div>
+
+      <!-- flashcards -->
+      <div class="pane" id="pane-cards">
+        <div class="card">
+          <div class="row">
+            <div style="flex:1; min-width:180px"><input type="text" id="fc-topic" placeholder="נושא (אופציונלי)"></div>
+            <div><input type="number" id="fc-n" value="25" min="5" max="60" style="width:70px"> כרטיסיות</div>
+            <button class="primary" style="width:auto" id="fc-btn" onclick="makeCards()">🃏 צור כרטיסיות</button>
+          </div>
+        </div>
+        <div id="fc-history"></div>
+        <div id="fc-area" style="display:none">
+          <div id="fc-stage" onclick="this.classList.toggle('flipped')">
+            <div id="fc-inner">
+              <div class="fc-face front" id="fc-front"></div>
+              <div class="fc-face back" id="fc-back"></div>
+            </div>
+          </div>
+          <div id="fc-nav">
+            <button class="ghost" onclick="fcMove(1)">→ הקודמת</button>
+            <span id="fc-count" class="hint"></span>
+            <button class="ghost" onclick="fcMove(-1)">הבאה ←</button>
+            <button class="ghost" onclick="fcShuffle()">🔀 ערבוב</button>
+          </div>
+          <p class="hint" style="text-align:center; margin-top:8px">לחיצה על הכרטיסייה הופכת אותה</p>
+        </div>
+      </div>
+
+      <!-- chat -->
+      <div class="pane" id="pane-chat">
+        <div id="chat-log"></div>
+        <div class="card">
+          <div class="row">
+            <textarea id="chat-in" style="flex:1; min-height:54px" placeholder="שאלו כל שאלה על הקורס... (Ctrl+Enter לשליחה)"></textarea>
+            <button class="primary" style="width:auto" id="chat-btn" onclick="sendChat()">שלח</button>
+          </div>
+          <button class="ghost" style="margin-top:8px" onclick="clearChat()">🗑 נקה שיחה</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- settings modal -->
+<div id="modal-bg" onclick="if(event.target===this)closeSettings()">
+  <div id="modal">
+    <h3>⚙ הגדרות</h3>
+    <div class="field">
+      <label>איך מתחברים ל-Claude?</label>
+      <label style="font-weight:400; cursor:pointer; display:flex; gap:8px; align-items:center; margin-bottom:6px">
+        <input type="radio" name="backend" value="max" style="width:auto" onchange="backendChanged()">
+        <span><b>מנוי Claude שלי (Pro/Max)</b> — בלי מפתח, בלי תשלום נוסף ✨</span>
+      </label>
+      <label style="font-weight:400; cursor:pointer; display:flex; gap:8px; align-items:center">
+        <input type="radio" name="backend" value="api" style="width:auto" onchange="backendChanged()">
+        <span>מפתח API — תשלום לפי שימוש (platform.claude.com)</span>
+      </label>
+    </div>
+    <div class="field" id="max-fields">
+      <p class="hint" style="margin-bottom:8px">בפעם הראשונה צריך התחברות חד-פעמית למנוי (נפתח חלון + דפדפן):</p>
+      <div class="row">
+        <button class="ghost" onclick="doLogin()">🔑 התחבר למנוי</button>
+        <span class="hint" id="cli-status"></span>
+      </div>
+    </div>
+    <div class="field" id="api-fields" style="display:none">
+      <label>מפתח Claude API <span id="key-hint" class="hint"></span></label>
+      <input type="password" id="set-key" placeholder="sk-ant-...">
+      <p class="hint" style="margin-top:4px">משיגים מפתח ב-<b dir="ltr">platform.claude.com</b> ← API Keys. המפתח נשמר רק במחשב שלך.</p>
+    </div>
+    <div class="field">
+      <label>מודל</label>
+      <select id="set-model">
+        <option value="claude-opus-4-8">Claude Opus — הכי חכם (מומלץ)</option>
+        <option value="claude-sonnet-4-6">Claude Sonnet — מהיר יותר, מנצל פחות מהמכסה</option>
+        <option value="claude-haiku-4-5">Claude Haiku — הכי מהיר וחסכוני</option>
+      </select>
+    </div>
+    <div class="row">
+      <button class="primary" style="width:auto" onclick="saveSettings()">שמור</button>
+      <button class="ghost" id="test-btn" onclick="testKey()">בדוק חיבור</button>
+      <button class="ghost" onclick="closeSettings()">סגור</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let courses=[], current=null, fcDeck=null, fcIdx=0;
+const $=id=>document.getElementById(id);
+marked.setOptions({breaks:true});
+
+/* ---------- markdown + math rendering ---------- */
+const KATEX_DELIMS=[
+  {left:'$$',right:'$$',display:true},
+  {left:'\\[',right:'\\]',display:true},
+  {left:'\\(',right:'\\)',display:false},
+  {left:'$',right:'$',display:false}
+];
+function mdHTML(text){
+  // stash math segments so marked doesn't mangle backslashes/underscores
+  const stash=[];
+  const keep=m=>{stash.push(m);return '@@MATH'+(stash.length-1)+'@@';};
+  let t=String(text)
+    .replace(/\$\$[\s\S]+?\$\$/g,keep)
+    .replace(/\\\[[\s\S]+?\\\]/g,keep)
+    .replace(/\\\([\s\S]+?\\\)/g,keep)
+    .replace(/\$[^$\n]+?\$/g,keep);
+  let html=marked.parse(t);
+  return html.replace(/@@MATH(\d+)@@/g,(_,i)=>esc2(stash[+i]));
+}
+function esc2(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function mathify(el){
+  if(window.renderMathInElement){
+    try{renderMathInElement(el,{delimiters:KATEX_DELIMS,throwOnError:false});}catch(e){}
+  }
+}
+function renderMD(el,text){el.innerHTML=mdHTML(text);mathify(el);}
+function toPlainText(md){
+  // turn markdown into clean text suitable for a notebook
+  return String(md)
+    .replace(/^#{1,6}\s*/gm,'')          // headers → plain line
+    .replace(/\*\*(.+?)\*\*/g,'$1')      // bold
+    .replace(/\*(.+?)\*/g,'$1')          // italic
+    .replace(/`([^`]+)`/g,'$1')          // inline code
+    .replace(/^\s*>\s?/gm,'')            // blockquote markers
+    .replace(/^\s*[-*]\s+/gm,'• ')       // bullets → •
+    .replace(/\$\$([\s\S]+?)\$\$/g,'$1') // display math delimiters
+    .replace(/\$([^$\n]+?)\$/g,'$1')     // inline math delimiters
+    .replace(/\n{3,}/g,'\n\n')           // collapse blank lines
+    .trim();
+}
+async function doCopy(t){
+  if(!t){toast('אין מה להעתיק');return;}
+  try{await navigator.clipboard.writeText(t);}
+  catch(e){
+    const ta=document.createElement('textarea');ta.value=t;
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+  }
+}
+async function copyText(t){await doCopy(t);toast('הועתק ✓ אפשר להדביק בכל מקום');}
+async function copyClean(t){await doCopy(toPlainText(t));toast('הועתק כטקסט נקי ✓ מתאים למחברת');}
+
+function toast(msg,ms=3000){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',ms);}
+async function api(path,opts={}){
+  const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opts});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||('שגיאה '+r.status));
+  return j;
+}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+/* ---------- SSE streaming into an element ---------- */
+async function streamInto(path,body,el,onDone){
+  el.classList.add('streaming');el.innerHTML='';
+  let acc='';
+  const opts=body instanceof FormData
+    ?{method:'POST',body}
+    :{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)};
+  const r=await fetch(path,opts);
+  if(!r.ok){const j=await r.json().catch(()=>({}));el.classList.remove('streaming');throw new Error(j.error||'שגיאה');}
+  const reader=r.body.getReader(),dec=new TextDecoder();let buf='';
+  while(true){
+    const {done,value}=await reader.read();if(done)break;
+    buf+=dec.decode(value,{stream:true});
+    const lines=buf.split('\n\n');buf=lines.pop();
+    for(const line of lines){
+      if(!line.startsWith('data: '))continue;
+      const ev=JSON.parse(line.slice(6));
+      if(ev.error){el.classList.remove('streaming');throw new Error(ev.error);}
+      if(ev.text){acc+=ev.text;el.dataset.raw=acc;renderMD(el,acc);el.scrollIntoView({block:'end',behavior:'smooth'});}
+    }
+  }
+  el.classList.remove('streaming');
+  if(onDone)onDone(acc);
+  return acc;
+}
+
+/* ---------- settings ---------- */
+function curBackend(){return document.querySelector('input[name=backend]:checked')?.value||'max';}
+function backendChanged(){
+  const b=curBackend();
+  $('max-fields').style.display=b==='max'?'block':'none';
+  $('api-fields').style.display=b==='api'?'block':'none';
+}
+async function refreshConfig(){
+  const cfg=await api('/api/config');
+  $('key-warning').style.display=(cfg.backend==='api'&&!cfg.has_key)?'block':'none';
+  $('key-hint').textContent=cfg.key_hint?('(שמור: '+cfg.key_hint+')'):'';
+  $('set-model').value=cfg.model;
+  // distributed build: only the API-key option is relevant
+  if(cfg.frozen){
+    document.querySelectorAll('input[name=backend]').forEach(r=>{
+      r.closest('label').style.display=r.value==='api'?'flex':'none';
+    });
+    cfg.backend='api';
+  }
+  document.querySelector(`input[name=backend][value=${cfg.backend}]`).checked=true;
+  $('cli-status').textContent=cfg.cli_ok?'':'⚠ Claude Code לא נמצא במחשב';
+  backendChanged();
+}
+function openSettings(){$('modal-bg').classList.add('open');refreshConfig();}
+function closeSettings(){$('modal-bg').classList.remove('open');}
+async function saveSettings(){
+  await api('/api/config',{method:'POST',body:JSON.stringify({backend:curBackend(),api_key:$('set-key').value,model:$('set-model').value})});
+  $('set-key').value='';toast('נשמר ✓');refreshConfig();
+}
+async function doLogin(){
+  try{
+    await api('/api/login',{method:'POST',body:'{}'});
+    toast('נפתח חלון התחברות — בחרו "Claude account with subscription" ואשרו בדפדפן',9000);
+  }catch(e){toast(e.message,6000);}
+}
+async function testKey(){
+  const btn=$('test-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> בודק...';
+  try{
+    await api('/api/config',{method:'POST',body:JSON.stringify({backend:curBackend(),api_key:$('set-key').value,model:$('set-model').value})});
+    await api('/api/config/test',{method:'POST',body:'{}'});
+    toast('החיבור תקין ✓ אפשר ללמוד!');
+  }catch(e){toast('שגיאה: '+e.message,8000);}
+  btn.disabled=false;btn.textContent='בדוק חיבור';
+}
+
+/* ---------- courses ---------- */
+async function refreshCourses(){
+  courses=await api('/api/courses');
+  const list=$('course-list');list.innerHTML='';
+  for(const c of courses){
+    const div=document.createElement('div');
+    div.className='course-item'+(current&&current.id===c.id?' active':'');
+    div.innerHTML=`<div><div>${esc(c.name)}</div><div class="meta">${c.materials} חומרים · ${c.exams} מבחנים</div></div>
+      <button class="course-del" title="מחק">✕</button>`;
+    div.onclick=()=>openCourse(c.id);
+    div.querySelector('.course-del').onclick=async e=>{
+      e.stopPropagation();
+      if(!confirm('למחוק את הקורס "'+c.name+'" וכל התוכן שלו?'))return;
+      await api('/api/courses/'+c.id,{method:'DELETE'});
+      if(current&&current.id===c.id){current=null;$('course-view').style.display='none';$('empty-state').style.display='block';}
+      refreshCourses();
+    };
+    list.appendChild(div);
+  }
+}
+async function newCourse(){
+  const name=prompt('שם הקורס (למשל: אלגברה לינארית 1):');
+  if(!name)return;
+  const c=await api('/api/courses',{method:'POST',body:JSON.stringify({name})});
+  await refreshCourses();openCourse(c.id);
+}
+function resetViews(){
+  // clear everything shown from the previously-open course
+  $('sum-out-card').style.display='none';$('sum-out').innerHTML='';
+  $('solve-out-card').style.display='none';$('solve-out').innerHTML='';
+  $('exam-area').innerHTML='';
+  $('fc-area').style.display='none';fcDeck=null;
+  $('mat-view').style.display='none';$('mat-view').innerHTML='';
+  $('sum-focus').value='';$('solve-in').value='';
+  $('exam-topic').value='';$('fc-topic').value='';$('chat-in').value='';
+  solveFiles=[];renderSolveFiles();
+  $('solve-ask').style.display='none';$('solve-ask-log').innerHTML='';
+  $('solve-ask-in').value='';currentSolutionId=null;
+}
+async function openCourse(id){
+  const switching=!current||current.id!==id;
+  current=await api('/api/courses/'+id);
+  if(switching)resetViews();
+  $('empty-state').style.display='none';
+  $('course-view').style.display='flex';
+  $('course-title').textContent=current.name;
+  renderMaterials();renderSumMats();renderHistories();renderChat();
+  refreshCourses();
+}
+function showTab(btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('pane-'+btn.dataset.pane).classList.add('active');
+}
+
+/* ---------- materials ---------- */
+function renderMaterials(){
+  const list=$('mat-list');list.innerHTML='';
+  for(const m of current.materials){
+    const div=document.createElement('div');div.className='mat-item';div.style.cursor='pointer';
+    div.title='לחצו לצפייה בתוכן שנקלט';
+    div.innerHTML=`<span>📄 ${esc(m.name)} <span class="sz">(${Math.round(m.chars/1000)}K תווים)</span></span>
+      <span style="display:flex; gap:6px; align-items:center">
+        <button class="ghost mat-sum" style="padding:4px 10px; font-size:12.5px">📝 סכם חומר זה</button>
+        <button class="del-x">✕</button>
+      </span>`;
+    div.onclick=()=>viewMaterial(m.id,m.name);
+    div.querySelector('.mat-sum').onclick=e=>{
+      e.stopPropagation();
+      summarizeMaterial(m.id);
+    };
+    div.querySelector('.del-x').onclick=async e=>{
+      e.stopPropagation();
+      await api(`/api/courses/${current.id}/materials/${m.id}`,{method:'DELETE'});
+      openCourse(current.id);
+    };
+    list.appendChild(div);
+  }
+  if(!current.materials.length)list.innerHTML='<p class="hint">עוד אין חומרים בקורס.</p>';
+}
+async function viewMaterial(mid,name){
+  const m=await api(`/api/courses/${current.id}/materials/${mid}`);
+  const card=$('mat-view');
+  card.style.display='block';
+  card.innerHTML=`<h3>📄 ${esc(name)}</h3>
+    <p class="hint" style="margin-bottom:8px">כך הטקסט נקלט מהקובץ (זה מה ש-Claude רואה):</p>
+    <pre style="white-space:pre-wrap; font-family:inherit; font-size:13.5px; max-height:420px; overflow-y:auto; background:var(--bg); padding:12px; border-radius:10px">${esc(m.text.slice(0,30000))}${m.text.length>30000?'\n\n[...מוצגים רק 30K התווים הראשונים]':''}</pre>
+    <button class="ghost" style="margin-top:8px" onclick="this.parentElement.style.display='none'">סגור</button>`;
+  card.scrollIntoView({behavior:'smooth'});
+}
+async function uploadFiles(files){
+  if(!files.length)return;
+  const fd=new FormData();
+  for(const f of files)fd.append('files',f);
+  toast('מעלה ומעבד קבצים...');
+  const r=await fetch(`/api/courses/${current.id}/materials`,{method:'POST',body:fd});
+  const j=await r.json();
+  if(!r.ok){toast('שגיאה: '+(j.error||r.status),8000);return;}
+  if(j.added.length)toast('נקלטו '+j.added.length+' קבצים ✓',4000);
+  if(j.failed&&j.failed.length){
+    const msgs=j.failed.map(f=>'❌ '+f.name+': '+f.error).join('\n');
+    setTimeout(()=>alert('חלק מהקבצים לא נקלטו:\n\n'+msgs),300);
+  }
+  openCourse(current.id);
+}
+$('file-in').addEventListener('change',e=>uploadFiles(e.target.files));
+const drop=$('drop');
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
+drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');uploadFiles(e.dataTransfer.files);});
+async function pasteMaterial(){
+  try{
+    await api(`/api/courses/${current.id}/materials`,{method:'POST',
+      body:JSON.stringify({name:$('paste-name').value,text:$('paste-text').value})});
+    $('paste-name').value='';$('paste-text').value='';
+    toast('נוסף ✓');openCourse(current.id);
+  }catch(e){toast(e.message,5000);}
+}
+
+/* ---------- histories (summaries / solutions / exams / decks) ---------- */
+function histList(container,items,onOpen,kind){
+  const el=$(container);el.innerHTML='';
+  for(const it of [...items].reverse()){
+    const div=document.createElement('div');div.className='hist-item';
+    const when=it.ts?new Date(it.ts*1000).toLocaleDateString('he-IL'):'';
+    div.innerHTML=`<span>${esc(it.title||'ללא כותרת')}</span><span class="hint">${when} <button class="del-x">✕</button></span>`;
+    div.onclick=()=>onOpen(it);
+    div.querySelector('.del-x').onclick=async e=>{
+      e.stopPropagation();
+      await api(`/api/courses/${current.id}/${kind}/${it.id}`,{method:'DELETE'});
+      current=await api('/api/courses/'+current.id);renderHistories();
+    };
+    el.appendChild(div);
+  }
+}
+function renderHistories(){
+  histList('sum-history',current.summaries,s=>{$('sum-out-card').style.display='block';$('sum-out').dataset.raw=s.text;renderMD($('sum-out'),s.text);},'summaries');
+  histList('solve-history',current.solutions,openSolution,'solutions');
+  histList('exam-history',current.exams,renderExam,'exams');
+  histList('fc-history',current.flashcards,openDeck,'flashcards');
+}
+
+/* ---------- solution follow-up questions ---------- */
+let currentSolutionId=null;
+function openSolution(s){
+  $('solve-out-card').style.display='block';
+  $('solve-out').dataset.raw=s.text;
+  renderMD($('solve-out'),s.text);
+  currentSolutionId=s.id;
+  renderFollowups(s);
+}
+function renderFollowups(s){
+  $('solve-ask').style.display='block';
+  const log=$('solve-ask-log');log.innerHTML='';
+  for(const m of (s.followups||[])){
+    const b=document.createElement('div');
+    b.className='bubble '+m.role;
+    if(m.role==='assistant'){
+      const md=document.createElement('div');md.className='md';
+      renderMD(md,m.content);b.appendChild(md);
+    }else{b.textContent=m.content;}
+    log.appendChild(b);
+  }
+}
+async function askSolution(){
+  if(!currentSolutionId){toast('פתחו קודם פתרון');return;}
+  const inp=$('solve-ask-in'),q=inp.value.trim();
+  if(!q)return;
+  inp.value='';
+  const log=$('solve-ask-log');
+  const u=document.createElement('div');u.className='bubble user';u.textContent=q;log.appendChild(u);
+  const a=document.createElement('div');a.className='bubble assistant';
+  const md=document.createElement('div');md.className='md';a.appendChild(md);log.appendChild(a);
+  const btn=$('solve-ask-btn');btn.disabled=true;
+  try{
+    await streamInto(`/api/courses/${current.id}/solutions/${currentSolutionId}/ask`,{question:q},md,
+      async()=>{current=await api('/api/courses/'+current.id);});
+    a.scrollIntoView({behavior:'smooth',block:'end'});
+  }catch(e){md.textContent='⚠ '+e.message;}
+  btn.disabled=false;
+}
+$('solve-ask-in').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')askSolution();});
+
+/* ---------- summary ---------- */
+function renderSumMats(){
+  const el=$('sum-mats');el.innerHTML='';
+  if(!current.materials.length){el.innerHTML='<span class="hint">עוד אין חומרים בקורס — העלו בלשונית "📚 חומרים"</span>';return;}
+  for(const m of current.materials){
+    const lab=document.createElement('label');
+    lab.style.cssText='font-weight:400;cursor:pointer;display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;background:#fff';
+    lab.innerHTML=`<input type="checkbox" value="${m.id}" style="width:auto"> 📄 ${esc(m.name)}`;
+    el.appendChild(lab);
+  }
+}
+function selectedSumMats(){
+  return [...document.querySelectorAll('#sum-mats input:checked')].map(c=>c.value);
+}
+function summarizeMaterial(mid){
+  // jump to the summary tab with only this material selected
+  showTab(document.querySelector('.tab[data-pane=summary]'));
+  document.querySelectorAll('#sum-mats input').forEach(c=>c.checked=(c.value===mid));
+  makeSummary();
+}
+async function makeSummary(){
+  const ids=selectedSumMats();
+  const btn=$('sum-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> כותב סיכום...';
+  $('sum-out-card').style.display='block';
+  try{
+    await streamInto(`/api/courses/${current.id}/summarize`,
+      {focus:$('sum-focus').value, material_ids:ids.length?ids:null},$('sum-out'),
+      async()=>{current=await api('/api/courses/'+current.id);renderHistories();});
+  }catch(e){toast(e.message,7000);}
+  btn.disabled=false;btn.textContent='✨ צור סיכום';
+}
+
+/* ---------- solve ---------- */
+let solveFiles=[];
+function renderSolveFiles(){
+  const el=$('solve-files');el.innerHTML='';
+  solveFiles.forEach((f,i)=>{
+    const div=document.createElement('div');div.className='mat-item';
+    div.innerHTML=`<span>📎 ${esc(f.name)}</span><button class="del-x">✕</button>`;
+    div.querySelector('.del-x').onclick=()=>{solveFiles.splice(i,1);renderSolveFiles();};
+    el.appendChild(div);
+  });
+}
+$('solve-file').addEventListener('change',e=>{solveFiles.push(...e.target.files);e.target.value='';renderSolveFiles();});
+const sdrop=$('solve-drop');
+sdrop.addEventListener('dragover',e=>{e.preventDefault();sdrop.style.borderColor='var(--accent)';});
+sdrop.addEventListener('dragleave',()=>sdrop.style.borderColor='var(--line)');
+sdrop.addEventListener('drop',e=>{e.preventDefault();sdrop.style.borderColor='var(--line)';solveFiles.push(...e.dataTransfer.files);renderSolveFiles();});
+
+async function solve(){
+  const text=$('solve-in').value.trim();
+  if(!text&&!solveFiles.length){toast('הדביקו את המטלה או העלו קובץ');return;}
+  const btn=$('solve-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> פותר...';
+  $('solve-out-card').style.display='block';
+  $('solve-ask').style.display='none';currentSolutionId=null;
+  let body;
+  if(solveFiles.length){
+    body=new FormData();
+    body.append('assignment',text);
+    for(const f of solveFiles)body.append('files',f);
+  }else{
+    body={assignment:text};
+  }
+  try{
+    await streamInto(`/api/courses/${current.id}/solve`,body,$('solve-out'),
+      async()=>{
+        current=await api('/api/courses/'+current.id);renderHistories();
+        const last=current.solutions[current.solutions.length-1];
+        if(last){currentSolutionId=last.id;renderFollowups(last);}
+      });
+    solveFiles=[];renderSolveFiles();
+  }catch(e){toast(e.message,7000);}
+  btn.disabled=false;btn.textContent='🧠 פתור עם הסברים';
+}
+
+/* ---------- exam ---------- */
+async function makeExam(){
+  const btn=$('exam-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> מחבר מבחן (זה לוקח דקה-שתיים)...';
+  try{
+    const exam=await api(`/api/courses/${current.id}/exam`,{method:'POST',
+      body:JSON.stringify({count:+$('exam-n').value,topic:$('exam-topic').value})});
+    current=await api('/api/courses/'+current.id);renderHistories();renderExam(exam);
+  }catch(e){toast(e.message,8000);}
+  btn.disabled=false;btn.textContent='🎯 צור מבחן';
+}
+function renderExam(exam){
+  const area=$('exam-area');area.innerHTML='';
+  const h=document.createElement('h3');h.textContent=exam.title;h.style.margin='10px 0';
+  area.appendChild(h);
+  exam.questions.forEach((q,i)=>{
+    const card=document.createElement('div');card.className='q-card';
+    card.innerHTML=`
+      <div class="q-head"><span>שאלה ${i+1}</span><span class="q-points">${q.points} נק'</span></div>
+      <div class="md">${mdHTML(q.question)}</div>
+      <textarea class="q-answer" placeholder="התשובה שלך..."></textarea>
+      <div class="q-tools">
+        <button class="ghost" onclick="this.closest('.q-card').querySelector('.reveal.hint-r').classList.toggle('show')">💡 רמז</button>
+        <button class="ghost" onclick="this.closest('.q-card').querySelector('.reveal.sol-r').classList.toggle('show')">👁 פתרון מלא</button>
+      </div>
+      <div class="reveal hint-r md">${mdHTML(q.hint)}</div>
+      <div class="reveal sol-r md">${mdHTML(q.solution)}</div>
+      <div class="q-feedback"></div>`;
+    mathify(card);
+    area.appendChild(card);
+  });
+  const gradeBtn=document.createElement('button');
+  gradeBtn.className='primary';gradeBtn.style.width='auto';gradeBtn.textContent='✅ בדוק אותי';
+  gradeBtn.onclick=()=>gradeExam(exam,gradeBtn);
+  area.appendChild(gradeBtn);
+  const result=document.createElement('div');result.id='grade-result';area.appendChild(result);
+  area.scrollIntoView({behavior:'smooth'});
+}
+async function gradeExam(exam,btn){
+  const answers=[...document.querySelectorAll('#exam-area .q-answer')].map(t=>t.value);
+  if(answers.every(a=>!a.trim())){toast('ענו לפחות על שאלה אחת');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> בודק...';
+  try{
+    const g=await api(`/api/courses/${current.id}/exam/grade`,{method:'POST',
+      body:JSON.stringify({exam_id:exam.id,answers})});
+    document.querySelectorAll('#exam-area .q-feedback').forEach((el,i)=>{
+      const r=g.results[i];if(!r)return;
+      const cls=r.score>=80?'score-good':r.score>=55?'score-mid':'score-bad';
+      el.innerHTML=`<div style="margin-top:10px"><span class="score-pill ${cls}">${r.score}/100</span>
+        <div class="md" style="margin-top:6px">${mdHTML(r.feedback)}</div></div>`;
+      mathify(el);
+    });
+    const cls=g.total>=80?'score-good':g.total>=55?'score-mid':'score-bad';
+    $('grade-result').innerHTML=`<div class="card" style="margin-top:12px">
+      <h3>ציון סופי: <span class="score-pill ${cls}" style="font-size:17px">${g.total}/100</span></h3>
+      <div class="md">${mdHTML(g.overall_feedback)}</div></div>`;
+    mathify($('grade-result'));
+    $('grade-result').scrollIntoView({behavior:'smooth'});
+  }catch(e){toast(e.message,8000);}
+  btn.disabled=false;btn.textContent='✅ בדוק אותי';
+}
+
+/* ---------- flashcards ---------- */
+async function makeCards(){
+  const btn=$('fc-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> מכין כרטיסיות...';
+  try{
+    const deck=await api(`/api/courses/${current.id}/flashcards`,{method:'POST',
+      body:JSON.stringify({count:+$('fc-n').value,topic:$('fc-topic').value})});
+    current=await api('/api/courses/'+current.id);renderHistories();openDeck(deck);
+  }catch(e){toast(e.message,8000);}
+  btn.disabled=false;btn.textContent='🃏 צור כרטיסיות';
+}
+function openDeck(deck){fcDeck=deck;fcIdx=0;$('fc-area').style.display='block';showCard();}
+function showCard(){
+  const c=fcDeck.cards[fcIdx];
+  $('fc-stage').classList.remove('flipped');
+  setTimeout(()=>{renderMD($('fc-front'),c.front);renderMD($('fc-back'),c.back);},150);
+  $('fc-count').textContent=(fcIdx+1)+' / '+fcDeck.cards.length;
+}
+function fcMove(d){fcIdx=(fcIdx+d+fcDeck.cards.length)%fcDeck.cards.length;showCard();}
+function fcShuffle(){fcDeck.cards.sort(()=>Math.random()-.5);fcIdx=0;showCard();toast('עורבב 🔀');}
+
+/* ---------- chat ---------- */
+function renderChat(){
+  const log=$('chat-log');log.innerHTML='';
+  for(const m of (current.chat||[])){
+    const b=document.createElement('div');
+    b.className='bubble '+m.role;
+    if(m.role==='assistant'){
+      const md=document.createElement('div');md.className='md';
+      renderMD(md,m.content);b.appendChild(md);
+    }else{b.textContent=m.content;}
+    log.appendChild(b);
+  }
+}
+async function sendChat(){
+  const inp=$('chat-in'),msg=inp.value.trim();
+  if(!msg)return;
+  inp.value='';
+  const log=$('chat-log');
+  const u=document.createElement('div');u.className='bubble user';u.textContent=msg;log.appendChild(u);
+  const a=document.createElement('div');a.className='bubble assistant';
+  const md=document.createElement('div');md.className='md';a.appendChild(md);log.appendChild(a);
+  const btn=$('chat-btn');btn.disabled=true;
+  try{
+    await streamInto(`/api/courses/${current.id}/chat`,{message:msg},md,
+      async()=>{current=await api('/api/courses/'+current.id);});
+  }catch(e){md.textContent='⚠ '+e.message;}
+  btn.disabled=false;
+}
+$('chat-in').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')sendChat();});
+async function clearChat(){
+  if(!confirm('לנקות את כל השיחה?'))return;
+  await api(`/api/courses/${current.id}/chat/clear`,{method:'POST',body:'{}'});
+  current.chat=[];renderChat();
+}
+
+/* ---------- init ---------- */
+refreshConfig();refreshCourses();
+</script>
+</body>
+</html>

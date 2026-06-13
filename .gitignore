@@ -1,0 +1,15 @@
+# build artifacts — the .exe goes to GitHub Releases, not the repo
+build/
+dist/
+*.zip
+*.spec.bak
+
+# user data & secrets — never publish
+data/
+*.log
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
