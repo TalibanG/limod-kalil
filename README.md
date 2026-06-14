@@ -8,11 +8,19 @@
 
 ## ⬇️ הורדה
 
-להורדת הגרסה האחרונה: [**עברו לעמוד ה-Releases**](../../releases/latest) והורידו את `LimodKalil-Setup.zip`.
+[**עברו לעמוד ה-Releases**](../../releases/latest) והורידו לפי המערכת שלכם:
 
-לאחר ההורדה: חלצו את ה-ZIP והריצו את `LimodKalil.exe`.
+### 🪟 Windows
+הורידו את `LimodKalil-Setup.zip`, חלצו, והריצו את `LimodKalil.exe`.
 
 > בהפעלה הראשונה Windows עשוי להציג "Windows protected your PC" — זה נורמלי לתוכנה חדשה. לחצו **More info** ואז **Run anyway**.
+
+### 🍎 Mac (Apple Silicon — M1 ואילך)
+הורידו את `LimodKalil-mac.zip`, חלצו (לחיצה כפולה), והעבירו את `LimodKalil.app` לתיקיית **Applications**.
+
+> בהפעלה הראשונה macOS יחסום תוכנה לא-חתומה. אם רואים "האפליקציה פגומה / לא ניתן לפתוח":
+> 1. פתחו **Terminal** והדביקו: `xattr -cr /Applications/LimodKalil.app` ואז Enter.
+> 2. או: לחיצה ימנית על האפליקציה ← **Open** ← **Open**.
 
 ---
 
